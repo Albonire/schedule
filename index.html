@@ -243,9 +243,157 @@
              margin-bottom: 2rem; /* Más espacio debajo del título */
          }
 
+        /* --- MOVED CSS RULES START --- */
+        /* Mejora: Contraste de colores para accesibilidad */
+        :root {
+            --header-bg: #8bc34a; /* Verde más oscuro para mejor contraste */
+            --header-text: #1b2e1b;
+            --time-col-bg: #b2dfdb;
+            --time-col-text: #1b2e1b;
+            --button-bg: #388e3c;
+            --button-hover-bg: #256029;
+            --button-text: #fff;
+        }
+
+        /* Mejora: Enfasis visual para navegación por teclado */
+        th:focus, td:focus, button:focus, .close-button:focus, input:focus, select:focus, textarea:focus {
+            outline: 2px solid #388e3c;
+            outline-offset: 2px;
+        }
+
+        /* Mejora: Responsive table stacking en móviles */
+        @media (max-width: 700px) {
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                margin-bottom: 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                background: var(--table-bg);
+            }
+            td {
+                border: none;
+                border-bottom: 1px solid var(--border-color);
+                position: relative;
+                padding-left: 50%;
+                min-height: 50px;
+                text-align: left;
+            }
+            td:first-child {
+                background: var(--time-col-bg);
+                color: var(--time-col-text);
+                font-weight: bold;
+                border-right: none;
+                min-width: unset;
+                padding-left: 1rem;
+            }
+            td:before {
+                position: absolute;
+                top: 12px;
+                left: 12px;
+                width: 45%;
+                white-space: nowrap;
+                font-weight: bold;
+                color: var(--header-text);
+                content: attr(data-label);
+                font-size: 0.95em;
+                opacity: 0.8;
+            }
+        }
+
+        /* Mejora: Hint de scroll horizontal en móviles */
+        .table-container::after {
+            content: "Desliza para ver más →";
+            display: none;
+            font-size: 0.95em;
+            color: #888;
+            position: absolute;
+            right: 1.5rem;
+            top: 0.5rem;
+            z-index: 30;
+        }
+        @media (max-width: 900px) {
+            .table-container {
+                position: relative;
+            }
+            .table-container::after {
+                display: block;
+            }
+        }
+
+        /* Mejora: Skip link para accesibilidad */
+        .skip-link {
+            position: absolute;
+            left: -999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            z-index: 1000;
+            background: #fff;
+            color: #388e3c;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: left 0.2s;
+        }
+        .skip-link:focus {
+            left: 10px;
+            top: 10px;
+            width: auto;
+            height: auto;
+            outline: 2px solid #388e3c;
+        }
+
+        /* Mejora: Modal centrado en móviles */
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 12px;
+                max-width: 98vw;
+            }
+        }
+        /* --- MOVED CSS RULES END --- */
+
+        /* === POMODORO TIMER STYLES START === */
+        .pomodoro-button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .pomodoro-button:hover {
+            background-color: var(--button-hover-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .pomodoro-button-secondary {
+            background-color: #e0e0e0; /* Gris claro */
+            color: #333;
+        }
+        .pomodoro-button-secondary:hover {
+            background-color: #bdbdbd;
+        }
+        /* === POMODORO TIMER STYLES END === */
+
     </style>
 </head>
 <body class="p-4 md:p-8">
+
+    <!-- Mejora: Skip link para accesibilidad -->
+    <a href="#schedule-body" class="skip-link">Saltar al horario</a>
 
     <h1 class="text-3xl md:text-4xl font-bold text-center">Horario Zen</h1>
 
@@ -262,7 +410,7 @@
 
     <div class="table-container">
         <table class="border">
-            <caption class="sr-only">Horario semanal de actividades Zen</caption>
+            <caption class="text-lg font-semibold mb-2">Horario semanal de actividades Zen</caption>
             <thead>
                 <tr>
                     <th class="w-24" scope="col">Hora</th>
@@ -279,6 +427,26 @@
             </tbody>
         </table>
     </div>
+
+    <!-- === POMODORO TIMER SECTION START === -->
+    <div id="pomodoro-timer-container" class="mt-8 p-6 max-w-md mx-auto bg-white rounded-lg shadow-md text-center" style="display: none;"> <!-- Hidden initially -->
+        <h3 class="text-lg font-semibold mb-2 text-[var(--header-text)]">Pomodoro Timer</h3>
+        <p id="pomodoro-activity" class="text-sm text-gray-600 mb-4">Para: -</p>
+        <div id="pomodoro-display" class="text-6xl font-bold text-[var(--button-bg)] mb-4">
+            25:00
+        </div>
+        <div id="pomodoro-controls" class="space-x-3">
+            <button id="pomodoro-start-pause" class="pomodoro-button">
+                <i class="fa-solid fa-play"></i> Iniciar
+            </button>
+            <button id="pomodoro-reset" class="pomodoro-button pomodoro-button-secondary">
+                <i class="fa-solid fa-rotate-right"></i> Reiniciar
+            </button>
+        </div>
+        <p id="pomodoro-status" class="text-sm mt-3 text-gray-500">Sesión de trabajo</p>
+    </div>
+    <!-- === POMODORO TIMER SECTION END === -->
+
 
     <!-- Modal (con atributos ARIA) -->
     <div id="editModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
@@ -376,11 +544,13 @@
 
         function renderSchedule() {
             scheduleBody.innerHTML = '';
-             const timeSlots = Object.keys(scheduleData).sort((a, b) => {
-                 const hourA = parseInt(a.split(':')[0]);
-                 const hourB = parseInt(b.split(':')[0]);
-                 return hourA - hourB;
-             });
+            const timeSlots = Object.keys(scheduleData).sort((a, b) => {
+                const hourA = parseInt(a.split(':')[0]);
+                const hourB = parseInt(b.split(':')[0]);
+                return hourA - hourB;
+            });
+
+            const dayLabels = ["Hora", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
             timeSlots.forEach(timeSlot => {
                 const row = scheduleBody.insertRow();
@@ -388,7 +558,9 @@
 
                 const timeCell = row.insertCell();
                 timeCell.textContent = timeSlot;
-                timeCell.classList.add('font-medium', 'text-xs'); // Ajuste visual
+                timeCell.classList.add('font-medium', 'text-xs');
+                timeCell.setAttribute('data-label', dayLabels[0]);
+                timeCell.tabIndex = 0;
 
                 days.forEach((day, dayIndex) => {
                     const cell = row.insertCell();
@@ -396,25 +568,28 @@
                     cell.setAttribute('data-day-index', dayIndex);
                     cell.setAttribute('data-time-slot', timeSlot);
                     cell.setAttribute('data-day', day);
-                    cell.classList.add('border'); // Asegurar borde básico
+                    cell.setAttribute('data-label', dayLabels[dayIndex + 1]);
+                    cell.classList.add('border');
+                    cell.tabIndex = 0;
 
                     if (activity) {
                         const style = activityStyles[activity.type] || activityStyles.other;
-                        cell.classList.add(style.class, 'p-2', 'text-xs'); // Aplicar clase de estilo
-                        cell.innerHTML = `<i class="icon ${style.icon}"></i>${activity.text}`;
+                        cell.classList.add(style.class, 'p-2', 'text-xs');
+                        cell.innerHTML = `<i class="icon ${style.icon}" aria-hidden="true"></i>${activity.text}`;
                         if (activity.notes && activity.notes.trim() !== "") {
                             const noteIndicator = document.createElement('div');
                             noteIndicator.classList.add('note-indicator');
                             noteIndicator.title = "Esta actividad tiene notas";
+                            noteIndicator.setAttribute('aria-hidden', 'true');
                             cell.appendChild(noteIndicator);
                         }
                         cell.onclick = () => openModal(timeSlot, day);
                         cell.setAttribute('aria-label', `Actividad: ${activity.text} (${activityStyles[activity.type].name}) el ${day} de ${timeSlot}. Haz clic para editar.`);
                     } else {
-                        cell.classList.add(activityStyles.open.class, 'p-2'); // Espacio abierto
-                        cell.innerHTML = '<i class="fa-solid fa-plus text-gray-400 opacity-50"></i>'; // Icono más tenue
+                        cell.classList.add(activityStyles.open.class, 'p-2');
+                        cell.innerHTML = '<i class="fa-solid fa-plus text-gray-400 opacity-50" aria-hidden="true"></i>';
                         cell.onclick = () => openModal(timeSlot, day, true);
-                         cell.setAttribute('aria-label', `Bloque libre el ${day} de ${timeSlot}. Haz clic para añadir actividad.`);
+                        cell.setAttribute('aria-label', `Bloque libre el ${day} de ${timeSlot}. Haz clic para añadir actividad.`);
                     }
                 });
             });
@@ -424,11 +599,22 @@
         // --- Mejoras de accesibilidad para el modal ---
         let lastFocusedElement = null;
 
-        function openModal(timeSlot, day, isNew = false) { /* Sin cambios funcionales */
+        function openModal(timeSlot, day, isNew = false) {
             const activity = scheduleData[timeSlot]?.[day];
             document.getElementById('modal-time-slot').value = timeSlot;
             document.getElementById('modal-day').value = day;
             const modalTitle = document.getElementById('modal-title'); // ARIA necesita que el título esté presente
+
+            // Check if the cell being opened is the current one
+            const targetCellSelector = `tr[data-time-slot="${timeSlot}"] td[data-day="${day}"]`;
+            const targetCell = scheduleBody.querySelector(targetCellSelector);
+            const isCurrent = targetCell && targetCell.classList.contains('is-current-activity-cell');
+
+            // Remove existing Pomodoro button if present
+            const existingPomodoroButton = document.getElementById('modal-pomodoro-button');
+            if (existingPomodoroButton) {
+                existingPomodoroButton.remove();
+            }
 
             if (isNew || !activity) {
                 modalTitle.textContent = `Añadir Actividad (${day} ${timeSlot})`;
@@ -440,12 +626,27 @@
                 document.getElementById('modal-activity-text').value = activity.text;
                 document.getElementById('modal-activity-type').value = activity.type;
                 document.getElementById('modal-activity-notes').value = activity.notes || '';
+
+                // Add Pomodoro button ONLY if it's the current activity and not new
+                if (isCurrent) {
+                    const pomodoroButton = document.createElement('button');
+                    pomodoroButton.id = 'modal-pomodoro-button';
+                    pomodoroButton.innerHTML = '<i class="fa-solid fa-stopwatch"></i> Iniciar Pomodoro';
+                    pomodoroButton.classList.add('pomodoro-button', 'ml-3'); // Add margin
+                    pomodoroButton.onclick = () => {
+                        startPomodoro(25, activity.text); // Start 25 min Pomodoro
+                        closeModal(); // Close modal after starting
+                    };
+                    // Insert Pomodoro button next to Save button
+                    modalSaveButton.parentNode.insertBefore(pomodoroButton, modalSaveButton.nextSibling);
+                }
             }
+
             modal.style.display = "block";
             lastFocusedElement = document.activeElement;
             modal.setAttribute('tabindex', '-1');
-            modal.focus();
-            document.getElementById('modal-activity-text').focus();
+            // modal.focus(); // Focusing the modal itself can be jarring
+            document.getElementById('modal-activity-text').focus(); // Focus first input instead
         }
 
         function closeModal() {
@@ -522,18 +723,21 @@
              const now = new Date();
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
-             // getDay() da 0 para Domingo, 1 para Lunes... Necesitamos 0 para Lunes... 5 para Sábado
-            const currentDayIndex = (now.getDay() + 6) % 7; // Lunes=0, Martes=1 ... Sábado=5, Domingo=6
+            const currentDayIndex = (now.getDay() + 6) % 7;
 
+            // Clear previous indicators and the specific current cell class
             document.querySelectorAll('.current-time-slot').forEach(cell => {
                 cell.classList.remove('current-time-slot');
-                cell.style.transform = '';
+                cell.style.transform = ''; // Reset potential transform
                 const indicator = cell.querySelector('.current-time-indicator');
                 if (indicator) indicator.remove();
             });
+            document.querySelectorAll('.is-current-activity-cell').forEach(cell => {
+                 cell.classList.remove('is-current-activity-cell');
+            });
 
-             // No mostrar indicador los domingos (índice 6)
-             if (currentDayIndex > 5) return; // Mayor que 5 significa Domingo
+
+             if (currentDayIndex > 5) return; // No indicator on Sunday
 
             let currentActivity = null;
             let currentSlotIdentifier = null;
@@ -547,21 +751,18 @@
 
                 const { startHour, startMinute, endHour, endMinute } = parsedTime;
                 const slotStartMinutes = startHour * 60 + startMinute;
-                 // El final del slot es exclusivo (ej. 09:00-12:00 termina a las 11:59:59)
-                 let slotEndMinutes = endHour * 60 + endMinute;
-                 // Si el slot termina a las XX:00, el final real es ese minuto exacto.
-                 // Si es 09:00-12:00 (ends at 12:00), nowMinutes must be < 720.
-                 // Si es 07:00-07:30 (ends at 07:30), nowMinutes must be < 450.
-
+                let slotEndMinutes = endHour * 60 + endMinute;
                 const nowMinutes = currentHour * 60 + currentMinute;
 
                  if (nowMinutes >= slotStartMinutes && nowMinutes < slotEndMinutes) {
                     const currentCell = row.querySelector(`td[data-day-index="${currentDayIndex}"]`);
                     const timeCell = row.querySelector('td:first-child');
-                    currentSlotIdentifier = `${timeSlot}-${days[currentDayIndex]}`; // Identificador único para notificación
+                    currentSlotIdentifier = `${timeSlot}-${days[currentDayIndex]}`;
 
                     if (currentCell) {
                         currentCell.classList.add('current-time-slot');
+                        currentCell.classList.add('is-current-activity-cell'); // *** Add specific class ***
+
                         const slotDuration = slotEndMinutes - slotStartMinutes;
                          // Asegurarse de que duration no es 0 para evitar división por cero
                         const percentageThroughSlot = slotDuration > 0 ? Math.max(0, Math.min(100, ((nowMinutes - slotStartMinutes) / slotDuration) * 100)) : 0;
@@ -569,12 +770,16 @@
                         const indicatorLine = document.createElement('div');
                         indicatorLine.classList.add('current-time-indicator');
                         indicatorLine.style.top = `${percentageThroughSlot}%`;
-                        currentCell.appendChild(indicatorLine);
+                        // Ensure indicator is appended only once if function runs frequently
+                        if (!currentCell.querySelector('.current-time-indicator')) {
+                           currentCell.appendChild(indicatorLine);
+                        }
+
 
                         currentActivity = scheduleData[timeSlot]?.[days[currentDayIndex]];
                     }
                     if (timeCell) {
-                        timeCell.classList.add('current-time-slot'); // Resaltar también la celda de hora
+                        timeCell.classList.add('current-time-slot');
                     }
                 }
             });
@@ -588,13 +793,19 @@
             }
         }
 
-        function displayRandomQuote() { /* Sin cambios */
+        function displayRandomQuote() {
              const quoteText = document.getElementById('quote-text');
+            // ... existing code ...
             if (quoteText && quotes.length > 0) {
                 const randomIndex = Math.floor(Math.random() * quotes.length);
-                quoteText.textContent = `"${quotes[randomIndex]}"`;
+                const selectedQuote = quotes[randomIndex];
+                console.log("[Debug] Setting quote:", selectedQuote); // Added log
+                quoteText.textContent = `"${selectedQuote}"`;
             } else if (quoteText) {
+                console.log("[Debug] Quotes array empty or element not found, setting default."); // Added log
                 quoteText.textContent = "La disciplina es la clave del éxito."; // Mensaje por defecto
+            } else {
+                console.error("[Debug] Element with ID 'quote-text' not found!"); // Added log
             }
         }
 
